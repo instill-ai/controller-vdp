@@ -9,9 +9,10 @@ import * as constant from "./const.js"
 const clientPrivate = new grpc.Client();
 clientPrivate.load(['proto/vdp/controller/v1alpha'], 'controller_service.proto');
 
-export function CheckSourceConnectorResource() {
-    var httpSourceConnectorResource = {
-        "resource_permalink": constant.sourceConnectorResourcePermalink,
+
+export function CheckConnectorResource() {
+    var httpConnectorResource = {
+        "resource_permalink": constant.connectorResourcePermalink,
         "connector_state": "STATE_CONNECTED"
     }
 
@@ -19,60 +20,25 @@ export function CheckSourceConnectorResource() {
         plaintext: true
     });
 
-    group("Controller API: Create source connector resource state in etcd", () => {
-        var resCreateSourceConnectorHTTP = clientPrivate.invoke('vdp.controller.v1alpha.ControllerPrivateService/UpdateResource', {
-            resource: httpSourceConnectorResource
+    group("Controller API: Create connector resource state in etcd", () => {
+        var resCreateConnectorHTTP = clientPrivate.invoke('vdp.controller.v1alpha.ControllerPrivateService/UpdateResource', {
+            resource: httpConnectorResource
         })
-
-        check(resCreateSourceConnectorHTTP, {
+        check(resCreateConnectorHTTP, {
             "vdp.controller.v1alpha.ControllerPrivateService/UpdateResource response StatusOK": (r) => r.status === grpc.StatusOK,
-            "vdp.controller.v1alpha.ControllerPrivateService/UpdateResource response connectorResource resource_permalink matched": (r) => r.message.resource.resourcePermalink == httpSourceConnectorResource.resource_permalink,
+            "vdp.controller.v1alpha.ControllerPrivateService/UpdateResource response connectorResource resource_permalink matched": (r) => r.message.resource.resourcePermalink == httpConnectorResource.resource_permalink,
         });
     });
 
-    group("Controller API: Get source connector resource state in etcd", () => {
-        var resGetSourceConnectorHTTP = clientPrivate.invoke(`vdp.controller.v1alpha.ControllerPrivateService/GetResource`, {
-            resource_permalink: httpSourceConnectorResource.resource_permalink
+    group("Controller API: Get connector resource state in etcd", () => {
+        var resGetConnectorHTTP = clientPrivate.invoke(`vdp.controller.v1alpha.ControllerPrivateService/GetResource`, {
+            resource_permalink: httpConnectorResource.resource_permalink
         })
 
-        check(resGetSourceConnectorHTTP, {
-            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpSourceConnectorResource.resource_permalink} response StatusOK`]: (r) => r.status === grpc.StatusOK,
-            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpSourceConnectorResource.resource_permalink} response connectorResource resource_permalink matched`]: (r) => r.message.resource.resourcePermalink === httpSourceConnectorResource.resource_permalink,
-            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpSourceConnectorResource.resource_permalink} response connectorResource state matched STATE_CONNECTED`]: (r) => r.message.resource.connectorState == "STATE_CONNECTED",
-        });
-    });
-}
-
-export function CheckDestinationConnectorResource() {
-    var httpDestinationConnectorResource = {
-        "resource_permalink": constant.destinationConnectorResourcePermalink,
-        "connector_state": "STATE_CONNECTED"
-    }
-
-    clientPrivate.connect(constant.controllerGRPCPrivateHost, {
-        plaintext: true
-    });
-
-    group("Controller API: Create destination connector resource state in etcd", () => {
-        var resCreatpDestinationConnectorHTTP = clientPrivate.invoke('vdp.controller.v1alpha.ControllerPrivateService/UpdateResource', {
-            resource: httpDestinationConnectorResource
-        })
-
-        check(resCreatpDestinationConnectorHTTP, {
-            "vdp.controller.v1alpha.ControllerPrivateService/UpdateResource response StatusOK": (r) => r.status === grpc.StatusOK,
-            "vdp.controller.v1alpha.ControllerPrivateService/UpdateResource response connectorResource resource_permalink matched": (r) => r.message.resource.resourcePermalink == httpDestinationConnectorResource.resource_permalink,
-        });
-    });
-
-    group("Controller API: Get destination connector resource state in etcd", () => {
-        var resGetDestinationConnectorHTTP = clientPrivate.invoke(`vdp.controller.v1alpha.ControllerPrivateService/GetResource`, {
-            resource_permalink: httpDestinationConnectorResource.resource_permalink
-        })
-
-        check(resGetDestinationConnectorHTTP, {
-            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpDestinationConnectorResource.resource_permalink} response StatusOK`]: (r) => r.status === grpc.StatusOK,
-            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpDestinationConnectorResource.resource_permalink} response connectorResource resource_permalink matched`]: (r) => r.message.resource.resourcePermalink === httpDestinationConnectorResource.resource_permalink,
-            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpDestinationConnectorResource.resource_permalink} response connectorResource state matched STATE_CONNECTED`]: (r) => r.message.resource.connectorState == "STATE_CONNECTED",
+        check(resGetConnectorHTTP, {
+            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpConnectorResource.resource_permalink} response StatusOK`]: (r) => r.status === grpc.StatusOK,
+            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpConnectorResource.resource_permalink} response connectorResource resource_permalink matched`]: (r) => r.message.resource.resourcePermalink === httpConnectorResource.resource_permalink,
+            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpConnectorResource.resource_permalink} response connectorResource state matched STATE_CONNECTED`]: (r) => r.message.resource.connectorState == "STATE_CONNECTED",
         });
     });
 }

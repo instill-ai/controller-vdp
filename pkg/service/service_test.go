@@ -16,7 +16,7 @@ import (
 )
 
 const serviceResourceName = "resources/name/types/services"
-const connectorResourceName = "resources/name/types/source-connectors"
+const connectorResourceName = "resources/name/types/connectors"
 const pipelineResourceName = "resources/name/types/pipelines"
 
 type Client struct {

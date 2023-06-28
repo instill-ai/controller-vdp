@@ -29,8 +29,7 @@ type Service interface {
 	UpdateResourceWorkflowId(ctx context.Context, resourcePermalink string, workflowID string) error
 	DeleteResourceWorkflowId(ctx context.Context, resourcePermalink string) error
 	ProbeBackend(ctx context.Context, cancel context.CancelFunc) error
-	ProbeSourceConnectors(ctx context.Context, cancel context.CancelFunc) error
-	ProbeDestinationConnectors(ctx context.Context, cancel context.CancelFunc) error
+	ProbeConnectors(ctx context.Context, cancel context.CancelFunc) error
 	ProbePipelines(ctx context.Context, cancel context.CancelFunc) error
 }
 
@@ -50,7 +49,7 @@ func NewService(
 	c connectorPB.ConnectorPublicServiceClient,
 	cp connectorPB.ConnectorPrivateServiceClient,
 	mg mgmtPB.MgmtPublicServiceClient,
-	e etcdv3.Client,) Service {
+	e etcdv3.Client) Service {
 	return &service{
 		pipelinePublicClient:   p,
 		pipelinePrivateClient:  pp,
@@ -87,7 +86,7 @@ func (s *service) GetResourceState(ctx context.Context, resourcePermalink string
 			},
 			Progress: nil,
 		}, nil
-	case util.RESOURCE_TYPE_SOURCE_CONNECTOR, util.RESOURCE_TYPE_DESTINATION_CONNECTOR:
+	case util.RESOURCE_TYPE_CONNECTOR:
 		return &controllerPB.Resource{
 			ResourcePermalink: resourcePermalink,
 			State: &controllerPB.Resource_ConnectorState{
@@ -115,7 +114,7 @@ func (s *service) UpdateResourceState(ctx context.Context, resource *controllerP
 	switch resourceType {
 	case util.RESOURCE_TYPE_PIPELINE:
 		state = int(resource.GetPipelineState())
-	case util.RESOURCE_TYPE_SOURCE_CONNECTOR, util.RESOURCE_TYPE_DESTINATION_CONNECTOR:
+	case util.RESOURCE_TYPE_CONNECTOR:
 		state = int(resource.GetConnectorState())
 	case util.RESOURCE_TYPE_SERVICE:
 		state = int(resource.GetBackendState())
@@ -196,7 +195,7 @@ func (s *service) ProbeBackend(ctx context.Context, cancel context.CancelFunc) e
 	}
 
 	var backenServices = [...]string{
-		config.Config.ConnectorBackend.Host,		
+		config.Config.ConnectorBackend.Host,
 		config.Config.PipelineBackend.Host,
 		config.Config.MgmtBackend.Host,
 	}

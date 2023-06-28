@@ -52,9 +52,7 @@ export const controllerPrivateHost = `${proto}://${ctHost}:${ctPrivatePort}`;
 
 export const controllerGRPCPrivateHost = `${ctHost}:${ctPrivatePort}`;
 
-export const sourceConnectorResourcePermalink = `resources/${uuidv4()}/types/source-connectors`
-
-export const destinationConnectorResourcePermalink = `resources/${uuidv4()}/types/destination-connectors`
+export const connectorResourcePermalink = `resources/${uuidv4()}/types/connectors`
 
 export const pipelineResourcePermalink = `resources/${uuidv4()}/types/pipelines`
 
