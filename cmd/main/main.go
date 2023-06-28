@@ -256,16 +256,10 @@ func main() {
 			// TODO: Temporary disable connector probing due to airbyte container spawn usage burst, will be revisited
 			if !isRepopulate {
 				logger.Info("[controller] some resources might be out of date while controller or etcd is down, repopulating...")
-				mainWG.Add(2)
+				mainWG.Add(1)
 				go func() {
 					defer mainWG.Done()
-					if err := service.ProbeSourceConnectors(context.WithTimeout(ctx, config.Config.Server.Timeout*time.Second)); err != nil {
-						logger.Error(err.Error())
-					}
-				}()
-				go func() {
-					defer mainWG.Done()
-					if err := service.ProbeDestinationConnectors(context.WithTimeout(ctx, config.Config.Server.Timeout*time.Second)); err != nil {
+					if err := service.ProbeConnectors(context.WithTimeout(ctx, config.Config.Server.Timeout*time.Second)); err != nil {
 						logger.Error(err.Error())
 					}
 				}()

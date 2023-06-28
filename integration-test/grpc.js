@@ -41,8 +41,7 @@ export default function (data) {
       client.close();
     });
 
-    controller_service.CheckSourceConnectorResource()
-    controller_service.CheckDestinationConnectorResource()
+    controller_service.CheckConnectorResource()
     controller_service.CheckPipelineResource()
     controller_service.CheckServiceResource()
   } else {
@@ -59,21 +58,9 @@ export function teardown(data) {
     group("Controller API: Delete all resources created by the test", () => {
 
       check(client.invoke(`vdp.controller.v1alpha.ControllerPrivateService/DeleteResource`, {
-        resource_permalink: constant.modelResourcePermalink
+        resource_permalink: constant.connectorResourcePermalink
       }), {
-        [`vdp.controller.v1alpha.ControllerPrivateService/DeleteResource ${constant.modelResourcePermalink} response StatusOK`]: (r) => r.status === grpc.StatusOK,
-      });
-
-      check(client.invoke(`vdp.controller.v1alpha.ControllerPrivateService/DeleteResource`, {
-        resource_permalink: constant.sourceConnectorResourcePermalink
-      }), {
-        [`vdp.controller.v1alpha.ControllerPrivateService/DeleteResource ${constant.sourceConnectorResourcePermalink} response StatusOK`]: (r) => r.status === grpc.StatusOK,
-      });
-
-      check(client.invoke(`vdp.controller.v1alpha.ControllerPrivateService/DeleteResource`, {
-        resource_permalink: constant.destinationConnectorResourcePermalink
-      }), {
-        [`vdp.controller.v1alpha.ControllerPrivateService/DeleteResource ${constant.destinationConnectorResourcePermalink} response StatusOK`]: (r) => r.status === grpc.StatusOK,
+        [`vdp.controller.v1alpha.ControllerPrivateService/DeleteResource ${constant.connectorResourcePermalink} response StatusOK`]: (r) => r.status === grpc.StatusOK,
       });
 
       check(client.invoke(`vdp.controller.v1alpha.ControllerPrivateService/DeleteResource`, {
