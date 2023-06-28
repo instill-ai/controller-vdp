@@ -234,9 +234,8 @@ func main() {
 				isRepopulate = false
 			}
 
-			mainWG.Add(3)
-
 			// Backend services
+			mainWG.Add(1)
 			go func() {
 				defer mainWG.Done()
 				if err := service.ProbeBackend(context.WithTimeout(ctx, config.Config.Server.Timeout*time.Second)); err != nil {
@@ -245,6 +244,7 @@ func main() {
 			}()
 
 			// Pipelines
+			mainWG.Add(1)
 			go func() {
 				defer mainWG.Done()
 				if err := service.ProbePipelines(context.WithTimeout(ctx, config.Config.Server.Timeout*time.Second)); err != nil {
