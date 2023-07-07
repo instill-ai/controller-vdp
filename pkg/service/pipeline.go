@@ -85,8 +85,8 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 
 				if i := strings.Index(component.ResourceName, "/"); i >= 0 {
 					switch component.ResourceName[:i] {
-					case "source-connectors":
-						sourceConnectorResource, err := s.GetResourceState(ctx, util.ConvertUIDToResourcePermalink(strings.Split(component.ResourceName, "/")[1], "source-connectors"))
+					case "connectors":
+						connectorResource, err := s.GetResourceState(ctx, util.ConvertUIDToResourcePermalink(strings.Split(component.ResourceName, "/")[1], "connectors"))
 						if err != nil {
 							resErr := s.UpdateResourceState(ctx, &pipelineResource)
 							if resErr != nil {
@@ -95,30 +95,7 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 							logger.Error(fmt.Sprintf("no record found for %s in etcd", component.ResourceName))
 							return
 						}
-						resources = append(resources, sourceConnectorResource)
-					case "destination-connectors":
-						destinationConnectorResource, err := s.GetResourceState(ctx, util.ConvertUIDToResourcePermalink(strings.Split(component.ResourceName, "/")[1], "destination-connectors"))
-						if err != nil {
-							resErr := s.UpdateResourceState(ctx, &pipelineResource)
-							if resErr != nil {
-								logger.Error(fmt.Sprintf("UpdateResourceState failed for %s", component.ResourceName))
-							}
-							logger.Error(fmt.Sprintf("no record found for %s in etcd", component.ResourceName))
-							return
-						}
-						resources = append(resources, destinationConnectorResource)
-					case "models":
-						modelResource, err := s.GetResourceState(ctx, util.ConvertUIDToResourcePermalink(strings.Split(component.ResourceName, "/")[1], "models"))
-						if err != nil {
-							resErr := s.UpdateResourceState(ctx, &pipelineResource)
-							if resErr != nil {
-								logger.Error(fmt.Sprintf("UpdateResourceState failed for %s", component.ResourceName))
-							}
-							logger.Error(fmt.Sprintf("no record found for %s in etcd", component.ResourceName))
-							return
-						}
-
-						resources = append(resources, modelResource)
+						resources = append(resources, connectorResource)
 					}
 				}
 
