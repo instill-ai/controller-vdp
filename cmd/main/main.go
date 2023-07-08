@@ -215,12 +215,27 @@ func main() {
 	span.End()
 	logger.Info("gRPC server is running.")
 
-	// Workaround, wait the http server ready
-	time.Sleep(10 * time.Second)
+	clientDialOpts := grpc.WithTransportCredentials(insecure.NewCredentials())
+	clientConn, err := grpc.Dial(fmt.Sprintf("%v:%v", "127.0.0.1", config.Config.Server.Port), clientDialOpts)
+	if err != nil {
+		panic(err)
+	}
+	defer clientConn.Close()
+
+	controllerClient := controllerPB.NewControllerPrivateServiceClient(clientConn)
 
 	go func() {
 		// repopulate connector resource
 		isRepopulate := false
+
+		for {
+			resp, err := controllerClient.Readiness(context.Background(), &controllerPB.ReadinessRequest{})
+			logger.Info(fmt.Sprintf("readiness %s", resp))
+			if err == nil {
+				break
+			}
+			time.Sleep(1 * time.Second)
+		}
 
 		logger.Info("[controller] control loop started")
 		var mainWG sync.WaitGroup
