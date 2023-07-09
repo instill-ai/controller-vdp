@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/instill-ai/controller-vdp/internal/util"
 	"github.com/instill-ai/controller-vdp/pkg/logger"
@@ -16,8 +15,6 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 	defer cancel()
 
 	logger, _ := logger.GetZapLogger(ctx)
-
-	var wg sync.WaitGroup
 
 	resp, err := s.connectorPrivateClient.ListConnectorsAdmin(ctx, &connectorPB.ListConnectorsAdminRequest{})
 
@@ -45,50 +42,39 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 
 	connectorType := "connectors"
 
-	wg.Add(len(connectors))
-
 	for _, connector := range connectors {
 
-		go func(connector *connectorPB.Connector) {
-			defer wg.Done()
+		resourcePermalink := util.ConvertUIDToResourcePermalink(connector.Uid, connectorType)
 
-			resourcePermalink := util.ConvertUIDToResourcePermalink(connector.Uid, connectorType)
-
-			// if user desires disconnected
-			if connector.State == connectorPB.Connector_STATE_DISCONNECTED {
-				if err := s.UpdateResourceState(ctx, &controllerPB.Resource{
-					ResourcePermalink: resourcePermalink,
-					State: &controllerPB.Resource_ConnectorState{
-						ConnectorState: connectorPB.Connector_STATE_DISCONNECTED,
-					},
-				}); err != nil {
-					logger.Error(err.Error())
-					return
-				}
-			}
-			// if user desires connected
-			resp, err := s.connectorPrivateClient.CheckConnector(ctx, &connectorPB.CheckConnectorRequest{
-				ConnectorPermalink: fmt.Sprintf("%s/%s", connectorType, connector.Uid),
-			})
-			if err != nil {
-				logger.Error(err.Error())
-				return
-			}
+		// if user desires disconnected
+		if connector.State == connectorPB.Connector_STATE_DISCONNECTED {
 			if err := s.UpdateResourceState(ctx, &controllerPB.Resource{
 				ResourcePermalink: resourcePermalink,
 				State: &controllerPB.Resource_ConnectorState{
-					ConnectorState: resp.State,
+					ConnectorState: connectorPB.Connector_STATE_DISCONNECTED,
 				},
 			}); err != nil {
 				logger.Error(err.Error())
-				return
 			}
-			logResp, _ := s.GetResourceState(ctx, resourcePermalink)
-			logger.Info(fmt.Sprintf("[Controller] Got %v", logResp))
-		}(connector)
+		}
+		// if user desires connected
+		resp, err := s.connectorPrivateClient.CheckConnector(ctx, &connectorPB.CheckConnectorRequest{
+			ConnectorPermalink: fmt.Sprintf("%s/%s", connectorType, connector.Uid),
+		})
+		if err != nil {
+			logger.Error(err.Error())
+		}
+		if err := s.UpdateResourceState(ctx, &controllerPB.Resource{
+			ResourcePermalink: resourcePermalink,
+			State: &controllerPB.Resource_ConnectorState{
+				ConnectorState: resp.State,
+			},
+		}); err != nil {
+			logger.Error(err.Error())
+		}
+		logResp, _ := s.GetResourceState(ctx, resourcePermalink)
+		logger.Info(fmt.Sprintf("[Controller] Got %v", logResp))
 	}
-
-	wg.Wait()
 
 	return nil
 }
