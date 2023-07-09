@@ -2,11 +2,7 @@ import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 
 let proto
 let pHost, cHost, ctHost
-let pPublicPort, pPrivatePort, cPublicPort, cPrivatePort, mgPrivatePort, ctPrivatePort
-
-if (__ENV.API_GATEWAY_VDP_HOST && !__ENV.API_GATEWAY_VDP_PORT || !__ENV.API_GATEWAY_VDP_HOST && __ENV.API_GATEWAY_VDP_PORT) {
-  fail("both API_GATEWAY_VDP_HOST and API_GATEWAY_VDP_PORT should be properly configured.")
-}
+let pPublicPort, pPrivatePort, cPublicPort, cPrivatePort, ctPrivatePort
 
 export const apiGatewayMode = (__ENV.API_GATEWAY_VDP_HOST && __ENV.API_GATEWAY_VDP_PORT);
 
@@ -25,15 +21,14 @@ if (apiGatewayMode) {
   pPrivatePort = 3081
   cPrivatePort = 3082
   ctPrivatePort = 3085
-  pPublicPort = cPublicPort = 8080
+  pPublicPort = cPublicPort = __ENV.API_GATEWAY_VDP_PORT
 } else {
-  // direct microservice mode  
+  // direct microservice mode
   pHost = "pipeline-backend"
   cHost = "connector-backend"
   ctHost = "controller-vdp"
   pPrivatePort = 3081
   cPrivatePort = 3082
-  mgPrivatePort = 3084
   ctPrivatePort = 3085
   pPublicPort = 8081
   cPublicPort = 8082

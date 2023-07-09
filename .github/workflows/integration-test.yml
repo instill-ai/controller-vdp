@@ -26,13 +26,6 @@ jobs:
     with:
       component: ${{ matrix.component }}
       target: latest
-  console:
-    needs: build-push-image
-    if: github.ref == 'refs/heads/main'
-    name: Console
-    uses: instill-ai/vdp/.github/workflows/integration-test-console.yml@main
-    with:
-      target: latest
 
   pr-head:
     if: github.event_name == 'pull_request'
@@ -82,10 +75,34 @@ jobs:
             GOLANG_VERSION=${{ env.GOLANG_VERSION }}
           tags: instill/${{ env.SERVICE_NAME }}:latest
 
+      - name: Checkout repo (base)
+        uses: actions/checkout@v3
+        with:
+          repository: instill-ai/base
+
+      - name: Load .env file (base)
+        uses: cardinalby/export-env-action@v2
+        with:
+          envFile: .env
+
+      - name: Launch Instill Base (latest)
+        run: |
+          COMPOSE_PROFILES=all \
+          EDITION=local-ce:test \
+          docker compose -f docker-compose.yml -f docker-compose.latest.yml up -d --quiet-pull
+          COMPOSE_PROFILES=all \
+          EDITION=local-ce:test \
+          docker compose -f docker-compose.yml -f docker-compose.latest.yml rm -f
+
       - name: Checkout (vdp)
         uses: actions/checkout@v3
         with:
           repository: instill-ai/vdp
+
+      - name: Load .env file (vdp)
+        uses: cardinalby/export-env-action@v2
+        with:
+          envFile: .env
 
       - name: Launch VDP
         run: |
