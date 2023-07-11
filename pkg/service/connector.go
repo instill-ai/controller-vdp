@@ -56,18 +56,24 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 			}); err != nil {
 				logger.Error(err.Error())
 			}
+			continue
 		}
 		// if user desires connected
 		resp, err := s.connectorPrivateClient.CheckConnector(ctx, &connectorPB.CheckConnectorRequest{
 			ConnectorPermalink: fmt.Sprintf("%s/%s", connectorType, connector.Uid),
 		})
+
+		state := connectorPB.Connector_STATE_UNSPECIFIED
 		if err != nil {
 			logger.Error(err.Error())
+		} else {
+			state = resp.State
 		}
+
 		if err := s.UpdateResourceState(ctx, &controllerPB.Resource{
 			ResourcePermalink: resourcePermalink,
 			State: &controllerPB.Resource_ConnectorState{
-				ConnectorState: resp.State,
+				ConnectorState: state,
 			},
 		}); err != nil {
 			logger.Error(err.Error())
