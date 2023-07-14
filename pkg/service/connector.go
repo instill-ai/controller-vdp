@@ -11,10 +11,22 @@ import (
 	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1alpha"
 )
 
-func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc) error {
+func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc, firstProbe bool) error {
 	defer cancel()
 
 	logger, _ := logger.GetZapLogger(ctx)
+
+	defResp, err := s.connectorPublicClient.ListConnectorDefinitions(ctx, &connectorPB.ListConnectorDefinitionsRequest{})
+	if err != nil {
+		return err
+	}
+	airbyteDefNames := map[string]bool{}
+	for idx := range defResp.ConnectorDefinitions {
+		if defResp.ConnectorDefinitions[idx].Vendor == "airbyte" {
+			airbyteDefNames[fmt.Sprintf("connector-definitions/%s", defResp.ConnectorDefinitions[idx].Id)] = true
+
+		}
+	}
 
 	resp, err := s.connectorPrivateClient.ListConnectorsAdmin(ctx, &connectorPB.ListConnectorsAdminRequest{})
 
@@ -40,9 +52,16 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 		connectors = append(connectors, resp.Connectors...)
 	}
 
+	filConnectors := []*connectorPB.Connector{}
+	for idx := range connectors {
+		if _, isAirbyte := airbyteDefNames[connectors[idx].ConnectorDefinitionName]; firstProbe || !isAirbyte {
+			filConnectors = append(filConnectors, connectors[idx])
+		}
+	}
+
 	connectorType := "connectors"
 
-	for _, connector := range connectors {
+	for _, connector := range filConnectors {
 
 		resourcePermalink := util.ConvertUIDToResourcePermalink(connector.Uid, connectorType)
 

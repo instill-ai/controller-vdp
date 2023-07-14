@@ -224,9 +224,6 @@ func main() {
 
 	controllerClient := controllerPB.NewControllerPrivateServiceClient(clientConn)
 
-	// Workaround, wait the http server ready
-	time.Sleep(10 * time.Second)
-
 	go func() {
 		// repopulate connector resource
 		isRepopulate := false
@@ -239,6 +236,8 @@ func main() {
 			}
 			time.Sleep(1 * time.Second)
 		}
+		// Workaround, wait the http server fully ready
+		time.Sleep(10 * time.Second)
 
 		logger.Info("[controller] control loop started")
 		var mainWG sync.WaitGroup
@@ -271,21 +270,18 @@ func main() {
 			}()
 
 			// Connectors
-			// TODO: Temporary disable connector probing due to airbyte container spawn usage burst, will be revisited
-			if !isRepopulate {
-				logger.Info("[controller] some resources might be out of date while controller or etcd is down, repopulating...")
-				mainWG.Add(1)
-				go func() {
-					defer mainWG.Done()
-					if err := service.ProbeConnectors(context.WithTimeout(ctx, config.Config.Server.Timeout*time.Second)); err != nil {
-						logger.Error(err.Error())
-					}
-				}()
-				isRepopulate = true
-			}
+			mainWG.Add(1)
+			go func() {
+				defer mainWG.Done()
+				conCtx, conCancel := context.WithTimeout(ctx, config.Config.Server.Timeout*time.Second)
+				if err := service.ProbeConnectors(conCtx, conCancel, !isRepopulate); err != nil {
+					logger.Error(err.Error())
+				}
+			}()
 
-			time.Sleep(config.Config.Server.LoopInterval * time.Second)
 			mainWG.Wait()
+			time.Sleep(config.Config.Server.LoopInterval * time.Second)
+			isRepopulate = true
 		}
 	}()
 

@@ -29,7 +29,7 @@ type Service interface {
 	UpdateResourceWorkflowId(ctx context.Context, resourcePermalink string, workflowID string) error
 	DeleteResourceWorkflowId(ctx context.Context, resourcePermalink string) error
 	ProbeBackend(ctx context.Context, cancel context.CancelFunc) error
-	ProbeConnectors(ctx context.Context, cancel context.CancelFunc) error
+	ProbeConnectors(ctx context.Context, cancel context.CancelFunc, firstProbe bool) error
 	ProbePipelines(ctx context.Context, cancel context.CancelFunc) error
 }
 
