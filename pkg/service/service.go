@@ -90,7 +90,7 @@ func (s *service) GetResourceState(ctx context.Context, resourcePermalink string
 		return &controllerPB.Resource{
 			ResourcePermalink: resourcePermalink,
 			State: &controllerPB.Resource_ConnectorState{
-				ConnectorState: connectorPB.Connector_State(stateEnumValue),
+				ConnectorState: connectorPB.ConnectorResource_State(stateEnumValue),
 			},
 			Progress: nil,
 		}, nil

@@ -105,15 +105,15 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 				switch v := r.State.(type) {
 				case *controllerPB.Resource_ConnectorState:
 					switch v.ConnectorState {
-					case connectorPB.Connector_STATE_DISCONNECTED:
+					case connectorPB.ConnectorResource_STATE_DISCONNECTED:
 						pipelineResource.State = &controllerPB.Resource_PipelineState{
 							PipelineState: pipelinePB.Pipeline_STATE_INACTIVE,
 						}
-					case connectorPB.Connector_STATE_UNSPECIFIED:
+					case connectorPB.ConnectorResource_STATE_UNSPECIFIED:
 						pipelineResource.State = &controllerPB.Resource_PipelineState{
 							PipelineState: pipelinePB.Pipeline_STATE_UNSPECIFIED,
 						}
-					case connectorPB.Connector_STATE_ERROR:
+					case connectorPB.ConnectorResource_STATE_ERROR:
 						pipelineResource.State = &controllerPB.Resource_PipelineState{
 							PipelineState: pipelinePB.Pipeline_STATE_ERROR,
 						}
