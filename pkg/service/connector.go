@@ -30,18 +30,18 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 		}
 	}
 
-	resp, err := s.connectorPrivateClient.ListConnectorsAdmin(ctx, &connectorPB.ListConnectorsAdminRequest{})
+	resp, err := s.connectorPrivateClient.ListConnectorResourcesAdmin(ctx, &connectorPB.ListConnectorResourcesAdminRequest{})
 
 	if err != nil {
 		return err
 	}
 
-	connectors := resp.Connectors
+	connectors := resp.ConnectorResources
 	nextPageToken := &resp.NextPageToken
 	totalSize := resp.TotalSize
 
 	for totalSize > util.DefaultPageSize {
-		resp, err := s.connectorPrivateClient.ListConnectorsAdmin(ctx, &connectorPB.ListConnectorsAdminRequest{
+		resp, err := s.connectorPrivateClient.ListConnectorResourcesAdmin(ctx, &connectorPB.ListConnectorResourcesAdminRequest{
 			PageToken: nextPageToken,
 		})
 
@@ -51,10 +51,10 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 
 		nextPageToken = &resp.NextPageToken
 		totalSize -= util.DefaultPageSize
-		connectors = append(connectors, resp.Connectors...)
+		connectors = append(connectors, resp.ConnectorResources...)
 	}
 
-	filConnectors := []*connectorPB.Connector{}
+	filConnectors := []*connectorPB.ConnectorResource{}
 	for idx := range connectors {
 		if _, isAirbyte := airbyteDefNames[connectors[idx].ConnectorDefinitionName]; firstProbe || !isAirbyte {
 			filConnectors = append(filConnectors, connectors[idx])
@@ -68,11 +68,11 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 		resourcePermalink := util.ConvertUIDToResourcePermalink(connector.Uid, connectorType)
 
 		// if user desires disconnected
-		if connector.State == connectorPB.Connector_STATE_DISCONNECTED {
+		if connector.State == connectorPB.ConnectorResource_STATE_DISCONNECTED {
 			if err := s.UpdateResourceState(ctx, &controllerPB.Resource{
 				ResourcePermalink: resourcePermalink,
 				State: &controllerPB.Resource_ConnectorState{
-					ConnectorState: connectorPB.Connector_STATE_DISCONNECTED,
+					ConnectorState: connectorPB.ConnectorResource_STATE_DISCONNECTED,
 				},
 			}); err != nil {
 				logger.Error(err.Error())
@@ -80,11 +80,11 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 			continue
 		}
 		// if user desires connected
-		resp, err := s.connectorPrivateClient.CheckConnector(ctx, &connectorPB.CheckConnectorRequest{
-			ConnectorPermalink: fmt.Sprintf("%s/%s", connectorType, connector.Uid),
+		resp, err := s.connectorPrivateClient.CheckConnectorResource(ctx, &connectorPB.CheckConnectorResourceRequest{
+			Permalink: fmt.Sprintf("%s/%s", connectorType, connector.Uid),
 		})
 
-		state := connectorPB.Connector_STATE_UNSPECIFIED
+		state := connectorPB.ConnectorResource_STATE_UNSPECIFIED
 		if err != nil {
 			logger.Error(err.Error())
 		} else {

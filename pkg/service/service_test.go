@@ -103,7 +103,7 @@ func TestGetResourceState(t *testing.T) {
 
 		resource, err := s.GetResourceState(ctx, connectorResourceName)
 
-		assert.Equal(t, connectorPB.Connector_STATE_UNSPECIFIED, resource.GetConnectorState())
+		assert.Equal(t, connectorPB.ConnectorResource_STATE_UNSPECIFIED, resource.GetConnectorState())
 
 		assert.NoError(t, err)
 	})
@@ -208,7 +208,7 @@ func TestUpdateResourceState(t *testing.T) {
 		resource := controllerPB.Resource{
 			ResourcePermalink: connectorResourceName,
 			State: &controllerPB.Resource_ConnectorState{
-				ConnectorState: connectorPB.Connector_STATE_UNSPECIFIED,
+				ConnectorState: connectorPB.ConnectorResource_STATE_UNSPECIFIED,
 			},
 		}
 
