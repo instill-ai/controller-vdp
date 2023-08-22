@@ -82,7 +82,7 @@ func (s *service) GetResourceState(ctx context.Context, resourcePermalink string
 		return &controllerPB.Resource{
 			ResourcePermalink: resourcePermalink,
 			State: &controllerPB.Resource_PipelineState{
-				PipelineState: pipelinePB.Pipeline_State(stateEnumValue),
+				PipelineState: pipelinePB.State(stateEnumValue),
 			},
 			Progress: nil,
 		}, nil
