@@ -17,7 +17,7 @@ import (
 
 const serviceResourceName = "resources/name/types/services"
 const connectorResourceName = "resources/name/types/connectors"
-const pipelineResourceName = "resources/name/types/pipelines"
+const pipelineResourceName = "resources/name/types/pipeline_releases"
 
 type Client struct {
 	etcdv3.Cluster
