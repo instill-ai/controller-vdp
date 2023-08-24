@@ -21,7 +21,7 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 
 	var wg sync.WaitGroup
 
-	resp, err := s.pipelinePrivateClient.ListPipelinesAdmin(ctx, &pipelinePB.ListPipelinesAdminRequest{
+	resp, err := s.pipelinePrivateClient.ListPipelineReleasesAdmin(ctx, &pipelinePB.ListPipelineReleasesAdminRequest{
 		View: pipelinePB.View_VIEW_FULL.Enum(),
 	})
 
@@ -29,12 +29,12 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 		return err
 	}
 
-	pipelines := resp.Pipelines
+	releases := resp.Releases
 	nextPageToken := &resp.NextPageToken
 	totalSize := resp.TotalSize
 
 	for totalSize > util.DefaultPageSize {
-		resp, err := s.pipelinePrivateClient.ListPipelinesAdmin(ctx, &pipelinePB.ListPipelinesAdminRequest{
+		resp, err := s.pipelinePrivateClient.ListPipelineReleasesAdmin(ctx, &pipelinePB.ListPipelineReleasesAdminRequest{
 			PageToken: nextPageToken,
 			View:      pipelinePB.View_VIEW_FULL.Enum(),
 		})
@@ -45,52 +45,42 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 
 		nextPageToken = &resp.NextPageToken
 		totalSize -= util.DefaultPageSize
-		pipelines = append(pipelines, resp.Pipelines...)
+		releases = append(releases, resp.Releases...)
 	}
 
-	resourceType := "pipelines"
+	resourceType := "pipeline_releases"
 
-	wg.Add(len(pipelines))
+	wg.Add(len(releases))
 
-	for _, pipeline := range pipelines {
+	for _, release := range releases {
 
-		go func(pipeline *pipelinePB.Pipeline) {
+		go func(release *pipelinePB.PipelineRelease) {
 			defer wg.Done()
 
-			resourcePermalink := util.ConvertUIDToResourcePermalink(pipeline.Uid, resourceType)
+			resourcePermalink := util.ConvertUIDToResourcePermalink(release.Uid, resourceType)
 
-			pipelineResource := controllerPB.Resource{
+			releaseResource := controllerPB.Resource{
 				ResourcePermalink: resourcePermalink,
 				State: &controllerPB.Resource_PipelineState{
-					PipelineState: pipelinePB.Pipeline_STATE_INACTIVE,
+					PipelineState: pipelinePB.State_STATE_ACTIVE,
 				},
 			}
 
-			// user desires inactive
-			if pipeline.State == pipelinePB.Pipeline_STATE_INACTIVE {
-				if err := s.UpdateResourceState(ctx, &pipelineResource); err != nil {
-					logger.Error(err.Error())
-					return
-				} else {
-					return
-				}
-			}
-
 			// user desires active, now check each component's state
-			pipelineResource.State = &controllerPB.Resource_PipelineState{PipelineState: pipelinePB.Pipeline_STATE_ERROR}
+			releaseResource.State = &controllerPB.Resource_PipelineState{PipelineState: pipelinePB.State_STATE_ERROR}
 
 			var resources []*controllerPB.Resource
 
-			for _, component := range pipeline.Recipe.Components {
+			for _, component := range release.Recipe.Components {
 
 				if i := strings.Index(component.ResourceName, "/"); i >= 0 {
 					switch component.ResourceName[:i] {
-					case "connectors":
+					case "connector-resources":
 						connectorResource, err := s.GetResourceState(ctx, util.ConvertUIDToResourcePermalink(strings.Split(component.ResourceName, "/")[1], "connectors"))
 						if err != nil {
-							resErr := s.UpdateResourceState(ctx, &pipelineResource)
+							resErr := s.UpdateResourceState(ctx, &releaseResource)
 							if resErr != nil {
-								logger.Error(fmt.Sprintf("UpdateResourceState failed for %s", component.ResourceName))
+								logger.Error(fmt.Sprintf("UpdateResourceState failed for1 %s", component.ResourceName))
 							}
 							logger.Error(fmt.Sprintf("no record found for %s in etcd", component.ResourceName))
 							return
@@ -106,39 +96,39 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 				case *controllerPB.Resource_ConnectorState:
 					switch v.ConnectorState {
 					case connectorPB.ConnectorResource_STATE_DISCONNECTED:
-						pipelineResource.State = &controllerPB.Resource_PipelineState{
-							PipelineState: pipelinePB.Pipeline_STATE_INACTIVE,
+						releaseResource.State = &controllerPB.Resource_PipelineState{
+							PipelineState: pipelinePB.State_STATE_INACTIVE,
 						}
 					case connectorPB.ConnectorResource_STATE_UNSPECIFIED:
-						pipelineResource.State = &controllerPB.Resource_PipelineState{
-							PipelineState: pipelinePB.Pipeline_STATE_UNSPECIFIED,
+						releaseResource.State = &controllerPB.Resource_PipelineState{
+							PipelineState: pipelinePB.State_STATE_UNSPECIFIED,
 						}
 					case connectorPB.ConnectorResource_STATE_ERROR:
-						pipelineResource.State = &controllerPB.Resource_PipelineState{
-							PipelineState: pipelinePB.Pipeline_STATE_ERROR,
+						releaseResource.State = &controllerPB.Resource_PipelineState{
+							PipelineState: pipelinePB.State_STATE_ERROR,
 						}
 					default:
 						continue
 					}
 				}
-				resErr := s.UpdateResourceState(ctx, &pipelineResource)
+				resErr := s.UpdateResourceState(ctx, &releaseResource)
 				if resErr != nil {
-					logger.Error(fmt.Sprintf("UpdateResourceState failed for %s", pipeline.Name))
+					logger.Error(fmt.Sprintf("UpdateResourceState failed for2 %s", release.Name))
 				}
 				return
 			}
 
-			pipelineResource.State = &controllerPB.Resource_PipelineState{
-				PipelineState: pipelinePB.Pipeline_STATE_ACTIVE,
+			releaseResource.State = &controllerPB.Resource_PipelineState{
+				PipelineState: pipelinePB.State_STATE_ACTIVE,
 			}
-			resErr := s.UpdateResourceState(ctx, &pipelineResource)
+			resErr := s.UpdateResourceState(ctx, &releaseResource)
 			if resErr != nil {
-				logger.Error(fmt.Sprintf("UpdateResourceState failed for %s", pipeline.Name))
+				logger.Error(fmt.Sprintf("UpdateResourceState failed for3 %s", release.Name))
 			}
 
 			logResp, _ := s.GetResourceState(ctx, resourcePermalink)
 			logger.Info(fmt.Sprintf("[Controller] Got %v", logResp))
-		}(pipeline)
+		}(release)
 	}
 
 	wg.Wait()

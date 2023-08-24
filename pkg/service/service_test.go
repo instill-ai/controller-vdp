@@ -17,7 +17,7 @@ import (
 
 const serviceResourceName = "resources/name/types/services"
 const connectorResourceName = "resources/name/types/connectors"
-const pipelineResourceName = "resources/name/types/pipelines"
+const pipelineResourceName = "resources/name/types/pipeline_releases"
 
 type Client struct {
 	etcdv3.Cluster
@@ -138,7 +138,7 @@ func TestGetResourceState(t *testing.T) {
 
 		resource, err := s.GetResourceState(ctx, pipelineResourceName)
 
-		assert.Equal(t, pipelinePB.Pipeline_STATE_UNSPECIFIED, resource.GetPipelineState())
+		assert.Equal(t, pipelinePB.State_STATE_UNSPECIFIED, resource.GetPipelineState())
 
 		assert.NoError(t, err)
 	})
@@ -247,7 +247,7 @@ func TestUpdateResourceState(t *testing.T) {
 		resource := controllerPB.Resource{
 			ResourcePermalink: pipelineResourceName,
 			State: &controllerPB.Resource_PipelineState{
-				PipelineState: pipelinePB.Pipeline_STATE_UNSPECIFIED,
+				PipelineState: pipelinePB.State_STATE_UNSPECIFIED,
 			},
 		}
 
