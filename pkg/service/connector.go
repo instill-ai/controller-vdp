@@ -11,6 +11,33 @@ import (
 	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1alpha"
 )
 
+func (s *service) getConnectorResources(ctx context.Context) ([]*connectorPB.ConnectorResource, error) {
+	resp, err := s.connectorPrivateClient.ListConnectorResourcesAdmin(ctx, &connectorPB.ListConnectorResourcesAdminRequest{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	connectors := resp.ConnectorResources
+	nextPageToken := &resp.NextPageToken
+	totalSize := resp.TotalSize
+
+	for totalSize > util.DefaultPageSize {
+		resp, err := s.connectorPrivateClient.ListConnectorResourcesAdmin(ctx, &connectorPB.ListConnectorResourcesAdminRequest{
+			PageToken: nextPageToken,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		nextPageToken = &resp.NextPageToken
+		totalSize -= util.DefaultPageSize
+		connectors = append(connectors, resp.ConnectorResources...)
+	}
+	return connectors, nil
+}
+
 func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc, firstProbe bool) error {
 	defer cancel()
 
@@ -30,28 +57,9 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 		}
 	}
 
-	resp, err := s.connectorPrivateClient.ListConnectorResourcesAdmin(ctx, &connectorPB.ListConnectorResourcesAdminRequest{})
-
+	connectors, err := s.getConnectorResources(ctx)
 	if err != nil {
 		return err
-	}
-
-	connectors := resp.ConnectorResources
-	nextPageToken := &resp.NextPageToken
-	totalSize := resp.TotalSize
-
-	for totalSize > util.DefaultPageSize {
-		resp, err := s.connectorPrivateClient.ListConnectorResourcesAdmin(ctx, &connectorPB.ListConnectorResourcesAdminRequest{
-			PageToken: nextPageToken,
-		})
-
-		if err != nil {
-			return err
-		}
-
-		nextPageToken = &resp.NextPageToken
-		totalSize -= util.DefaultPageSize
-		connectors = append(connectors, resp.ConnectorResources...)
 	}
 
 	filConnectors := []*connectorPB.ConnectorResource{}

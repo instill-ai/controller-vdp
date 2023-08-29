@@ -22,11 +22,20 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 	var wg sync.WaitGroup
 
 	resp, err := s.pipelinePrivateClient.ListPipelineReleasesAdmin(ctx, &pipelinePB.ListPipelineReleasesAdminRequest{
-		View: pipelinePB.View_VIEW_FULL.Enum(),
+		View: pipelinePB.View_VIEW_RECIPE.Enum(),
 	})
 
 	if err != nil {
 		return err
+	}
+
+	connectorResources, err := s.getConnectorResources(ctx)
+	if err != nil {
+		return err
+	}
+	connectorNameUidMap := map[string]string{}
+	for _, connectorResource := range connectorResources {
+		connectorNameUidMap[connectorResource.Name] = connectorResource.Uid
 	}
 
 	releases := resp.Releases
@@ -73,19 +82,37 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 
 			for _, component := range release.Recipe.Components {
 
-				if i := strings.Index(component.ResourceName, "/"); i >= 0 {
-					switch component.ResourceName[:i] {
-					case "connector-resources":
-						connectorResource, err := s.GetResourceState(ctx, util.ConvertUIDToResourcePermalink(strings.Split(component.ResourceName, "/")[1], "connectors"))
-						if err != nil {
-							resErr := s.UpdateResourceState(ctx, &releaseResource)
-							if resErr != nil {
-								logger.Error(fmt.Sprintf("UpdateResourceState failed for1 %s", component.ResourceName))
+				if strings.HasPrefix(component.DefinitionName, "connector-definitions/") {
+					if len(component.ResourceName) > 0 {
+						if uid, ok := connectorNameUidMap[component.ResourceName]; ok {
+							connectorResource, err := s.GetResourceState(ctx, util.ConvertUIDToResourcePermalink(uid, "connectors"))
+							if err != nil {
+								resErr := s.UpdateResourceState(ctx, &releaseResource)
+								if resErr != nil {
+									logger.Error(fmt.Sprintf("UpdateResourceState failed for %s", component.ResourceName))
+								}
+								logger.Error(fmt.Sprintf("no record found for %s in etcd", component.ResourceName))
+								return
 							}
-							logger.Error(fmt.Sprintf("no record found for %s in etcd", component.ResourceName))
-							return
+							resources = append(resources, connectorResource)
+						} else {
+							resources = append(resources, &controllerPB.Resource{
+								ResourcePermalink: "",
+								State: &controllerPB.Resource_ConnectorState{
+									ConnectorState: connectorPB.ConnectorResource_STATE_ERROR,
+								},
+								Progress: nil,
+							})
 						}
-						resources = append(resources, connectorResource)
+
+					} else {
+						resources = append(resources, &controllerPB.Resource{
+							ResourcePermalink: "",
+							State: &controllerPB.Resource_ConnectorState{
+								ConnectorState: connectorPB.ConnectorResource_STATE_ERROR,
+							},
+							Progress: nil,
+						})
 					}
 				}
 
