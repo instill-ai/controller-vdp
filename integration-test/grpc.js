@@ -42,7 +42,8 @@ export default function (data) {
     });
 
     controller_service.CheckConnectorResource()
-    controller_service.CheckPipelineResource()
+    // NOTE: we don't check pipeline state for now
+    // controller_service.CheckPipelineResource()
     controller_service.CheckServiceResource()
   } else {
     console.log("No Public APIs")

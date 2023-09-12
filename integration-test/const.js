@@ -24,18 +24,7 @@ if (__ENV.API_GATEWAY_PROTOCOL) {
   proto = "http"
 }
 
-
-export const pipelinePrivateHost = `http://pipeline-backend:3081`;
-export const pipelinePublicHost = apiGatewayMode ? `${proto}://${__ENV.API_GATEWAY_URL}/vdp` : `http://pipeline-backend:8081`
-export const pipelineGRPCPublicHost = `${__ENV.API_GATEWAY_URL}`;
-export const connectorPrivateHost = `http://connector-backend:3082`;
-export const connectorPublicHost = apiGatewayMode ? `${proto}://${__ENV.API_GATEWAY_URL}/vdp` : `http://connector-backend:8082`
-export const connectorGRPCPrivateHost = `connector-backend:3082`;
-export const connectorGRPCPublicHost = `${__ENV.API_GATEWAY_URL}`;
-export const controllerPrivateHost = `http://controller-vdp:3085`;
 export const controllerGRPCPrivateHost = `controller-vdp:3085`;
-export const mgmtPublicHost = apiGatewayMode ? `${proto}://${__ENV.API_GATEWAY_URL}/base` : `http://mgmt-backend:8084`
-
 
 
 export const connectorResourcePermalink = `resources/${uuidv4()}/types/connectors`
