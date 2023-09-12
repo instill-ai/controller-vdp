@@ -4,7 +4,7 @@ let proto
 let pHost, cHost, ctHost
 let pPublicPort, pPrivatePort, cPublicPort, cPrivatePort, ctPrivatePort
 
-export const apiGatewayMode = (__ENV.API_GATEWAY_VDP_HOST && __ENV.API_GATEWAY_VDP_PORT);
+export const apiGatewayMode = (__ENV.API_GATEWAY_URL && true);
 
 if (__ENV.API_GATEWAY_PROTOCOL) {
   if (__ENV.API_GATEWAY_PROTOCOL !== "http" && __ENV.API_GATEWAY_PROTOCOL != "https") {
@@ -15,32 +15,28 @@ if (__ENV.API_GATEWAY_PROTOCOL) {
   proto = "http"
 }
 
-if (apiGatewayMode) {
-  // api-gateway mode
-  pHost = cHost = ctHost = __ENV.API_GATEWAY_VDP_HOST
-  pPrivatePort = 3081
-  cPrivatePort = 3082
-  ctPrivatePort = 3085
-  pPublicPort = cPublicPort = __ENV.API_GATEWAY_VDP_PORT
+if (__ENV.API_GATEWAY_PROTOCOL) {
+  if (__ENV.API_GATEWAY_PROTOCOL !== "http" && __ENV.API_GATEWAY_PROTOCOL != "https") {
+    fail("only allow `http` or `https` for API_GATEWAY_PROTOCOL")
+  }
+  proto = __ENV.API_GATEWAY_PROTOCOL
 } else {
-  // direct microservice mode
-  pHost = "pipeline-backend"
-  cHost = "connector-backend"
-  ctHost = "controller-vdp"
-  pPrivatePort = 3081
-  cPrivatePort = 3082
-  ctPrivatePort = 3085
-  pPublicPort = 8081
-  cPublicPort = 8082
+  proto = "http"
 }
 
-export const connectorPublicHost = `${proto}://${cHost}:${cPublicPort}`;
-export const connectorPrivateHost = `${proto}://${cHost}:${cPrivatePort}`;
-export const pipelinePublicHost = `${proto}://${pHost}:${pPublicPort}`;
-export const pipelinePrivateHost = `${proto}://${pHost}:${pPrivatePort}`;
-export const controllerPrivateHost = `${proto}://${ctHost}:${ctPrivatePort}`;
 
-export const controllerGRPCPrivateHost = `${ctHost}:${ctPrivatePort}`;
+export const pipelinePrivateHost = `http://pipeline-backend:3081`;
+export const pipelinePublicHost = apiGatewayMode ? `${proto}://${__ENV.API_GATEWAY_URL}/vdp` : `http://pipeline-backend:8081`
+export const pipelineGRPCPublicHost = `${__ENV.API_GATEWAY_URL}`;
+export const connectorPrivateHost = `http://connector-backend:3082`;
+export const connectorPublicHost = apiGatewayMode ? `${proto}://${__ENV.API_GATEWAY_URL}/vdp` : `http://connector-backend:8082`
+export const connectorGRPCPrivateHost = `connector-backend:3082`;
+export const connectorGRPCPublicHost = `${__ENV.API_GATEWAY_URL}`;
+export const controllerPrivateHost = `http://controller-vdp:3085`;
+export const controllerGRPCPrivateHost = `controller-vdp:3085`;
+export const mgmtPublicHost = apiGatewayMode ? `${proto}://${__ENV.API_GATEWAY_URL}/base` : `http://mgmt-backend:8084`
+
+
 
 export const connectorResourcePermalink = `resources/${uuidv4()}/types/connectors`
 
