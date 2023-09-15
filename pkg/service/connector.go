@@ -44,7 +44,7 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 	logger, _ := logger.GetZapLogger(ctx)
 
 	// the number of connector definitions is controllable, using fix size here should be enough
-	pageSize := int64(1000)
+	pageSize := int32(1000)
 	defResp, err := s.connectorPublicClient.ListConnectorDefinitions(ctx, &connectorPB.ListConnectorDefinitionsRequest{PageSize: &pageSize})
 	if err != nil {
 		return err
