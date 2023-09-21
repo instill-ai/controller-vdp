@@ -7,6 +7,7 @@
 ## Local dev
 
 On the local machine, clone `vdp` repository in your workspace, move to the repository folder, and launch all dependent microservices:
+
 ```bash
 $ cd <your-workspace>
 $ git clone https://github.com/instill-ai/vdp.git
@@ -15,6 +16,7 @@ $ make dev PROFILE=controller
 ```
 
 Clone `controller-vdp` repository in your workspace and move to the repository folder:
+
 ```bash
 $ cd <your-workspace>
 $ git clone https://github.com/instill-ai/controller-vdp.git
@@ -58,6 +60,10 @@ $ make stop
 ### CI/CD
 
 The latest images will be published to Docker Hub [repository](https://hub.docker.com/r/instill/controller) at release.
+
+## Contributing
+
+Please refer to the [Contributing Guidelines](https://github.com/instill-ai/vdp/blob/main/.github/CONTRIBUTING.md) for more details.
 
 ## License
 
