@@ -93,7 +93,9 @@ func main() {
 		// can't handle the error due to https://github.com/uber-go/zap/issues/880
 		_ = logger.Sync()
 	}()
-	grpc_zap.ReplaceGrpcLoggerV2(logger)
+
+	// verbosity 3 will avoid [transport] from emitting
+	grpc_zap.ReplaceGrpcLoggerV2WithVerbosity(logger, 3)
 
 	// Create tls based credential.
 	var creds credentials.TransportCredentials
@@ -111,6 +113,10 @@ func main() {
 			// will not log gRPC calls if it was a call to liveness or readiness and no error was raised
 			if err == nil {
 				if match, _ := regexp.MatchString("vdp.model.v1alpha.ModelPublicService/.*ness$", fullMethodName); match {
+					return false
+				}
+				// stop logging successful private function calls
+				if match, _ := regexp.MatchString("model.model.v1alpha.ModelPrivateService/.*Admin$", fullMethodName); match {
 					return false
 				}
 			}
@@ -242,8 +248,6 @@ func main() {
 		logger.Info("[controller] control loop started")
 		var mainWG sync.WaitGroup
 		for {
-			logger.Info("[controller] --------------Start probing------------")
-
 			for etcdClient.ActiveConnection().GetState() != connectivity.Ready {
 				logger.Warn("[controller] etcd connection lost, waiting for state change...")
 				etcdClient.ActiveConnection().WaitForStateChange(ctx, connectivity.TransientFailure)

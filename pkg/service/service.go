@@ -194,15 +194,15 @@ func (s *service) ProbeBackend(ctx context.Context, cancel context.CancelFunc) e
 		Status: healthcheckPB.HealthCheckResponse_SERVING_STATUS_UNSPECIFIED,
 	}
 
-	var backenServices = [...]string{
+	var backendServices = [...]string{
 		config.Config.ConnectorBackend.Host,
 		config.Config.PipelineBackend.Host,
 		config.Config.MgmtBackend.Host,
 	}
 
-	wg.Add(len(backenServices))
+	wg.Add(len(backendServices))
 
-	for _, hostname := range backenServices {
+	for _, hostname := range backendServices {
 		go func(hostname string) {
 			defer wg.Done()
 			switch hostname {
@@ -238,21 +238,19 @@ func (s *service) ProbeBackend(ctx context.Context, cancel context.CancelFunc) e
 				}
 			}
 
-			err := s.UpdateResourceState(ctx, &controllerPB.Resource{
+			if healthcheck.Status == healthcheckPB.HealthCheckResponse_SERVING_STATUS_NOT_SERVING {
+				logger.Warn(fmt.Sprintf("[Controller] %v: %v", hostname, healthcheck.Status))
+			}
+
+			if err := s.UpdateResourceState(ctx, &controllerPB.Resource{
 				ResourcePermalink: util.ConvertServiceToResourceName(hostname),
 				State: &controllerPB.Resource_BackendState{
 					BackendState: healthcheck.Status,
 				},
-			})
-
-			if err != nil {
+			}); err != nil {
 				logger.Error(err.Error())
 				return
 			}
-
-			resp, _ := s.GetResourceState(ctx, util.ConvertServiceToResourceName(hostname))
-
-			logger.Info(fmt.Sprintf("[Controller] Got %v", resp))
 		}(hostname)
 	}
 
