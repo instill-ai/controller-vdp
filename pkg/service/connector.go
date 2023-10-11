@@ -51,7 +51,7 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 	}
 	airbyteDefNames := map[string]bool{}
 	for idx := range defResp.ConnectorDefinitions {
-		if defResp.ConnectorDefinitions[idx].Vendor == "airbyte" {
+		if defResp.ConnectorDefinitions[idx].Vendor == "Airbyte" {
 			airbyteDefNames[fmt.Sprintf("connector-definitions/%s", defResp.ConnectorDefinitions[idx].Id)] = true
 
 		}
