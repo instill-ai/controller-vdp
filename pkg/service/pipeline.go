@@ -142,6 +142,9 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 				if resErr != nil {
 					logger.Error(fmt.Sprintf("UpdateResourceState failed for2 %s", release.Name))
 				}
+
+				logger.Warn(fmt.Sprintf("[Controller] %s: %v", release.Id, &releaseResource.State))
+
 				return
 			}
 
@@ -152,9 +155,6 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 			if resErr != nil {
 				logger.Error(fmt.Sprintf("UpdateResourceState failed for3 %s", release.Name))
 			}
-
-			logResp, _ := s.GetResourceState(ctx, resourcePermalink)
-			logger.Info(fmt.Sprintf("[Controller] Got %v", logResp))
 		}(release)
 	}
 
