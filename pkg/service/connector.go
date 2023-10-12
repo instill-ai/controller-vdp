@@ -99,10 +99,6 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 			state = resp.State
 		}
 
-		if state != connectorPB.ConnectorResource_STATE_CONNECTED {
-			logger.Warn(fmt.Sprintf("[Controller] %s: %v", connector.Id, state))
-		}
-
 		if err := s.UpdateResourceState(ctx, &controllerPB.Resource{
 			ResourcePermalink: resourcePermalink,
 			State: &controllerPB.Resource_ConnectorState{
