@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5-alpha](https://github.com/instill-ai/controller-vdp/compare/v0.1.4-alpha...v0.1.5-alpha) (2023-10-27)
+
+
+### Miscellaneous Chores
+
+* **release:** release v0.1.5-alpha ([4927d8a](https://github.com/instill-ai/controller-vdp/commit/4927d8aec9589728e243a81dd892db2bd4f12ccd))
+
 ## [0.1.4-alpha](https://github.com/instill-ai/controller-vdp/compare/v0.1.3-alpha...v0.1.4-alpha) (2023-10-13)
 
 
