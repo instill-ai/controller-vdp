@@ -145,12 +145,6 @@ func main() {
 	pipelinePrivateServiceClient, pipelinePrivateServiceClientConn := external.InitPipelinePrivateServiceClient(ctx)
 	defer pipelinePrivateServiceClientConn.Close()
 
-	connectorPublicServiceClient, connectorPublicServiceClientConn := external.InitConnectorPublicServiceClient(ctx)
-	defer connectorPublicServiceClientConn.Close()
-
-	connectorPrivateServiceClient, connectorPrivateServiceClientConn := external.InitConnectorPrivateServiceClient(ctx)
-	defer connectorPrivateServiceClientConn.Close()
-
 	mgmtPublicServiceClient, mgmtPublicServiceClientConn := external.InitMgmtPublicServiceClient(ctx)
 	defer mgmtPublicServiceClientConn.Close()
 
@@ -160,8 +154,6 @@ func main() {
 	service := service.NewService(
 		pipelinePublicServiceClient,
 		pipelinePrivateServiceClient,
-		connectorPublicServiceClient,
-		connectorPrivateServiceClient,
 		mgmtPublicServiceClient,
 		*etcdClient,
 	)

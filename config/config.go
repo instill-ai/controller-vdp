@@ -19,14 +19,13 @@ var Config AppConfig
 
 // AppConfig defines
 type AppConfig struct {
-	Server           ServerConfig           `koanf:"server"`
-	Etcd             EtcdConfig             `koanf:"etcd"`
-	Database         DatabaseConfig         `koanf:"database"`
-	Cache            CacheConfig            `koanf:"cache"`
-	ConnectorBackend ConnectorBackendConfig `koanf:"connectorbackend"`	
-	PipelineBackend  PipelineBackendConfig  `koanf:"pipelinebackend"`
-	MgmtBackend      MgmtBackendConfig      `koanf:"mgmtbackend"`
-	Log              LogConfig              `koanf:"log"`
+	Server          ServerConfig          `koanf:"server"`
+	Etcd            EtcdConfig            `koanf:"etcd"`
+	Database        DatabaseConfig        `koanf:"database"`
+	Cache           CacheConfig           `koanf:"cache"`
+	PipelineBackend PipelineBackendConfig `koanf:"pipelinebackend"`
+	MgmtBackend     MgmtBackendConfig     `koanf:"mgmtbackend"`
+	Log             LogConfig             `koanf:"log"`
 }
 
 // ServerConfig defines HTTP server configurations
@@ -69,17 +68,6 @@ type DatabaseConfig struct {
 type CacheConfig struct {
 	Redis struct {
 		RedisOptions redis.Options `koanf:"redisoptions"`
-	}
-}
-
-// ConnectorBackendConfig related to connector-backend
-type ConnectorBackendConfig struct {
-	Host        string `koanf:"host"`
-	PublicPort  int    `koanf:"publicport"`
-	PrivatePort int    `koanf:"privateport"`
-	HTTPS       struct {
-		Cert string `koanf:"cert"`
-		Key  string `koanf:"key"`
 	}
 }
 

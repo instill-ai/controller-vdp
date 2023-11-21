@@ -7,23 +7,23 @@ import (
 	"github.com/instill-ai/controller-vdp/internal/util"
 	"github.com/instill-ai/controller-vdp/pkg/logger"
 
-	connectorPB "github.com/instill-ai/protogen-go/vdp/connector/v1alpha"
 	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1alpha"
+	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1alpha"
 )
 
-func (s *service) getConnectorResources(ctx context.Context) ([]*connectorPB.ConnectorResource, error) {
-	resp, err := s.connectorPrivateClient.ListConnectorResourcesAdmin(ctx, &connectorPB.ListConnectorResourcesAdminRequest{})
+func (s *service) getConnectors(ctx context.Context) ([]*pipelinePB.Connector, error) {
+	resp, err := s.pipelinePrivateClient.ListConnectorsAdmin(ctx, &pipelinePB.ListConnectorsAdminRequest{})
 
 	if err != nil {
 		return nil, err
 	}
 
-	connectors := resp.ConnectorResources
+	connectors := resp.Connectors
 	nextPageToken := &resp.NextPageToken
 	totalSize := resp.TotalSize
 
 	for totalSize > util.DefaultPageSize {
-		resp, err := s.connectorPrivateClient.ListConnectorResourcesAdmin(ctx, &connectorPB.ListConnectorResourcesAdminRequest{
+		resp, err := s.pipelinePrivateClient.ListConnectorsAdmin(ctx, &pipelinePB.ListConnectorsAdminRequest{
 			PageToken: nextPageToken,
 		})
 
@@ -33,7 +33,7 @@ func (s *service) getConnectorResources(ctx context.Context) ([]*connectorPB.Con
 
 		nextPageToken = &resp.NextPageToken
 		totalSize -= util.DefaultPageSize
-		connectors = append(connectors, resp.ConnectorResources...)
+		connectors = append(connectors, resp.Connectors...)
 	}
 	return connectors, nil
 }
@@ -45,7 +45,7 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 
 	// the number of connector definitions is controllable, using fix size here should be enough
 	pageSize := int32(1000)
-	defResp, err := s.connectorPublicClient.ListConnectorDefinitions(ctx, &connectorPB.ListConnectorDefinitionsRequest{PageSize: &pageSize})
+	defResp, err := s.pipelinePublicClient.ListConnectorDefinitions(ctx, &pipelinePB.ListConnectorDefinitionsRequest{PageSize: &pageSize})
 	if err != nil {
 		return err
 	}
@@ -57,12 +57,12 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 		}
 	}
 
-	connectors, err := s.getConnectorResources(ctx)
+	connectors, err := s.getConnectors(ctx)
 	if err != nil {
 		return err
 	}
 
-	filConnectors := []*connectorPB.ConnectorResource{}
+	filConnectors := []*pipelinePB.Connector{}
 	for idx := range connectors {
 		if _, isAirbyte := airbyteDefNames[connectors[idx].ConnectorDefinitionName]; firstProbe || !isAirbyte {
 			filConnectors = append(filConnectors, connectors[idx])
@@ -76,11 +76,11 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 		resourcePermalink := util.ConvertUIDToResourcePermalink(connector.Uid, connectorType)
 
 		// if user desires disconnected
-		if connector.State == connectorPB.ConnectorResource_STATE_DISCONNECTED {
+		if connector.State == pipelinePB.Connector_STATE_DISCONNECTED {
 			if err := s.UpdateResourceState(ctx, &controllerPB.Resource{
 				ResourcePermalink: resourcePermalink,
 				State: &controllerPB.Resource_ConnectorState{
-					ConnectorState: connectorPB.ConnectorResource_STATE_DISCONNECTED,
+					ConnectorState: pipelinePB.Connector_STATE_DISCONNECTED,
 				},
 			}); err != nil {
 				logger.Error(err.Error())
@@ -88,11 +88,11 @@ func (s *service) ProbeConnectors(ctx context.Context, cancel context.CancelFunc
 			continue
 		}
 		// if user desires connected
-		resp, err := s.connectorPrivateClient.CheckConnectorResource(ctx, &connectorPB.CheckConnectorResourceRequest{
+		resp, err := s.pipelinePrivateClient.CheckConnector(ctx, &pipelinePB.CheckConnectorRequest{
 			Permalink: fmt.Sprintf("%s/%s", connectorType, connector.Uid),
 		})
 
-		state := connectorPB.ConnectorResource_STATE_UNSPECIFIED
+		state := pipelinePB.Connector_STATE_UNSPECIFIED
 		if err != nil {
 			logger.Error(err.Error())
 		} else {

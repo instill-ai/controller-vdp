@@ -15,13 +15,6 @@ tritonserver:
   host: triton-server
   grpcuri: triton-server:8001
   modelstore: /model-repository
-connectorbackend:
-  host: connector-backend
-  publicport: 8082
-  privateport: 3082
-  https:
-    cert:
-    key:
 pipelinebackend:
   host: pipeline-backend
   publicport: 8081
