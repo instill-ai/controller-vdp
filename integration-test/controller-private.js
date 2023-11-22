@@ -10,9 +10,9 @@ const clientPrivate = new grpc.Client();
 clientPrivate.load(['proto/vdp/controller/v1alpha'], 'controller_service.proto');
 
 
-export function CheckConnectorResource() {
-    var httpConnectorResource = {
-        "resource_permalink": constant.connectorResourcePermalink,
+export function CheckConnector() {
+    var httpConnector = {
+        "resource_permalink": constant.connectorPermalink,
         "connector_state": "STATE_CONNECTED"
     }
 
@@ -22,23 +22,23 @@ export function CheckConnectorResource() {
 
     group("Controller API: Create connector resource state in etcd", () => {
         var resCreateConnectorHTTP = clientPrivate.invoke('vdp.controller.v1alpha.ControllerPrivateService/UpdateResource', {
-            resource: httpConnectorResource
+            resource: httpConnector
         })
         check(resCreateConnectorHTTP, {
             "vdp.controller.v1alpha.ControllerPrivateService/UpdateResource response StatusOK": (r) => r.status === grpc.StatusOK,
-            "vdp.controller.v1alpha.ControllerPrivateService/UpdateResource response connectorResource resource_permalink matched": (r) => r.message.resource.resourcePermalink == httpConnectorResource.resource_permalink,
+            "vdp.controller.v1alpha.ControllerPrivateService/UpdateResource response connector resource_permalink matched": (r) => r.message.resource.resourcePermalink == httpConnector.resource_permalink,
         });
     });
 
     group("Controller API: Get connector resource state in etcd", () => {
         var resGetConnectorHTTP = clientPrivate.invoke(`vdp.controller.v1alpha.ControllerPrivateService/GetResource`, {
-            resource_permalink: httpConnectorResource.resource_permalink
+            resource_permalink: httpConnector.resource_permalink
         })
 
         check(resGetConnectorHTTP, {
-            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpConnectorResource.resource_permalink} response StatusOK`]: (r) => r.status === grpc.StatusOK,
-            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpConnectorResource.resource_permalink} response connectorResource resource_permalink matched`]: (r) => r.message.resource.resourcePermalink === httpConnectorResource.resource_permalink,
-            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpConnectorResource.resource_permalink} response connectorResource state matched STATE_CONNECTED`]: (r) => r.message.resource.connectorState == "STATE_CONNECTED",
+            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpConnector.resource_permalink} response StatusOK`]: (r) => r.status === grpc.StatusOK,
+            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpConnector.resource_permalink} response connector resource_permalink matched`]: (r) => r.message.resource.resourcePermalink === httpConnector.resource_permalink,
+            [`vdp.controller.v1alpha.ControllerPrivateService/GetResource ${httpConnector.resource_permalink} response connector state matched STATE_CONNECTED`]: (r) => r.message.resource.connectorState == "STATE_CONNECTED",
         });
     });
 }

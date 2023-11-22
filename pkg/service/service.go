@@ -15,7 +15,6 @@ import (
 
 	healthcheckPB "github.com/instill-ai/protogen-go/common/healthcheck/v1alpha"
 	mgmtPB "github.com/instill-ai/protogen-go/core/mgmt/v1alpha"
-	connectorPB "github.com/instill-ai/protogen-go/vdp/connector/v1alpha"
 	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1alpha"
 	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1alpha"
 )
@@ -34,29 +33,23 @@ type Service interface {
 }
 
 type service struct {
-	pipelinePublicClient   pipelinePB.PipelinePublicServiceClient
-	pipelinePrivateClient  pipelinePB.PipelinePrivateServiceClient
-	connectorPublicClient  connectorPB.ConnectorPublicServiceClient
-	connectorPrivateClient connectorPB.ConnectorPrivateServiceClient
-	mgmtPublicClient       mgmtPB.MgmtPublicServiceClient
-	etcdClient             etcdv3.Client
+	pipelinePublicClient  pipelinePB.PipelinePublicServiceClient
+	pipelinePrivateClient pipelinePB.PipelinePrivateServiceClient
+	mgmtPublicClient      mgmtPB.MgmtPublicServiceClient
+	etcdClient            etcdv3.Client
 }
 
 // NewService returns a new controller service instance
 func NewService(
 	p pipelinePB.PipelinePublicServiceClient,
 	pp pipelinePB.PipelinePrivateServiceClient,
-	c connectorPB.ConnectorPublicServiceClient,
-	cp connectorPB.ConnectorPrivateServiceClient,
 	mg mgmtPB.MgmtPublicServiceClient,
 	e etcdv3.Client) Service {
 	return &service{
-		pipelinePublicClient:   p,
-		pipelinePrivateClient:  pp,
-		connectorPublicClient:  c,
-		connectorPrivateClient: cp,
-		mgmtPublicClient:       mg,
-		etcdClient:             e,
+		pipelinePublicClient:  p,
+		pipelinePrivateClient: pp,
+		mgmtPublicClient:      mg,
+		etcdClient:            e,
 	}
 }
 
@@ -90,7 +83,7 @@ func (s *service) GetResourceState(ctx context.Context, resourcePermalink string
 		return &controllerPB.Resource{
 			ResourcePermalink: resourcePermalink,
 			State: &controllerPB.Resource_ConnectorState{
-				ConnectorState: connectorPB.ConnectorResource_State(stateEnumValue),
+				ConnectorState: pipelinePB.Connector_State(stateEnumValue),
 			},
 			Progress: nil,
 		}, nil
@@ -195,7 +188,6 @@ func (s *service) ProbeBackend(ctx context.Context, cancel context.CancelFunc) e
 	}
 
 	var backendServices = [...]string{
-		config.Config.ConnectorBackend.Host,
 		config.Config.PipelineBackend.Host,
 		config.Config.MgmtBackend.Host,
 	}
@@ -218,16 +210,6 @@ func (s *service) ProbeBackend(ctx context.Context, cancel context.CancelFunc) e
 				}
 			case config.Config.MgmtBackend.Host:
 				resp, err := s.mgmtPublicClient.Liveness(ctx, &mgmtPB.LivenessRequest{})
-
-				if err != nil {
-					healthcheck = healthcheckPB.HealthCheckResponse{
-						Status: healthcheckPB.HealthCheckResponse_SERVING_STATUS_NOT_SERVING,
-					}
-				} else {
-					healthcheck = *resp.GetHealthCheckResponse()
-				}
-			case config.Config.ConnectorBackend.Host:
-				resp, err := s.connectorPublicClient.Liveness(ctx, &connectorPB.LivenessRequest{})
 
 				if err != nil {
 					healthcheck = healthcheckPB.HealthCheckResponse{

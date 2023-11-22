@@ -9,14 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	healthcheckPB "github.com/instill-ai/protogen-go/common/healthcheck/v1alpha"
-	connectorPB "github.com/instill-ai/protogen-go/vdp/connector/v1alpha"
 	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1alpha"
 	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1alpha"
 	etcdv3 "go.etcd.io/etcd/client/v3"
 )
 
 const serviceResourceName = "resources/name/types/services"
-const connectorResourceName = "resources/name/types/connectors"
+const connectorName = "resources/name/types/connectors"
 const pipelineResourceName = "resources/name/types/pipeline_releases"
 
 type Client struct {
@@ -64,7 +63,7 @@ func TestGetResourceState(t *testing.T) {
 			Return(resp, nil).
 			Times(1)
 
-		s := service.NewService(nil, nil, nil, nil, nil, mockEtcdClient)
+		s := service.NewService(nil, nil, nil, mockEtcdClient)
 
 		resource, err := s.GetResourceState(ctx, serviceResourceName)
 
@@ -95,15 +94,15 @@ func TestGetResourceState(t *testing.T) {
 
 		mockKV.
 			EXPECT().
-			Get(ctx, connectorResourceName).
+			Get(ctx, connectorName).
 			Return(resp, nil).
 			Times(1)
 
-		s := service.NewService(nil, nil, nil, nil, nil, mockEtcdClient)
+		s := service.NewService(nil, nil, nil, mockEtcdClient)
 
-		resource, err := s.GetResourceState(ctx, connectorResourceName)
+		resource, err := s.GetResourceState(ctx, connectorName)
 
-		assert.Equal(t, connectorPB.ConnectorResource_STATE_UNSPECIFIED, resource.GetConnectorState())
+		assert.Equal(t, pipelinePB.Connector_STATE_UNSPECIFIED, resource.GetConnectorState())
 
 		assert.NoError(t, err)
 	})
@@ -134,7 +133,7 @@ func TestGetResourceState(t *testing.T) {
 			Return(resp, nil).
 			Times(1)
 
-		s := service.NewService(nil, nil, nil, nil, nil, mockEtcdClient)
+		s := service.NewService(nil, nil, nil, mockEtcdClient)
 
 		resource, err := s.GetResourceState(ctx, pipelineResourceName)
 
@@ -179,7 +178,7 @@ func TestUpdateResourceState(t *testing.T) {
 			Return(&etcdv3.PutResponse{}, nil).
 			Times(1)
 
-		s := service.NewService(nil, nil, nil, nil, nil, mockEtcdClient)
+		s := service.NewService(nil, nil, nil, mockEtcdClient)
 
 		err := s.UpdateResourceState(ctx, &resource)
 
@@ -206,19 +205,19 @@ func TestUpdateResourceState(t *testing.T) {
 		}
 
 		resource := controllerPB.Resource{
-			ResourcePermalink: connectorResourceName,
+			ResourcePermalink: connectorName,
 			State: &controllerPB.Resource_ConnectorState{
-				ConnectorState: connectorPB.ConnectorResource_STATE_UNSPECIFIED,
+				ConnectorState: pipelinePB.Connector_STATE_UNSPECIFIED,
 			},
 		}
 
 		mockKV.
 			EXPECT().
-			Put(ctx, connectorResourceName, string("0")).
+			Put(ctx, connectorName, string("0")).
 			Return(&etcdv3.PutResponse{}, nil).
 			Times(1)
 
-		s := service.NewService(nil, nil, nil, nil, nil, mockEtcdClient)
+		s := service.NewService(nil, nil, nil, mockEtcdClient)
 
 		err := s.UpdateResourceState(ctx, &resource)
 
@@ -257,7 +256,7 @@ func TestUpdateResourceState(t *testing.T) {
 			Return(&etcdv3.PutResponse{}, nil).
 			Times(1)
 
-		s := service.NewService(nil, nil, nil, nil, nil, mockEtcdClient)
+		s := service.NewService(nil, nil, nil, mockEtcdClient)
 
 		err := s.UpdateResourceState(ctx, &resource)
 
@@ -295,7 +294,7 @@ func TestDeleteResourceState(t *testing.T) {
 			Return(resp, nil).
 			Times(1)
 
-		s := service.NewService(nil, nil, nil, nil, nil, mockEtcdClient)
+		s := service.NewService(nil, nil, nil, mockEtcdClient)
 
 		err := s.DeleteResourceState(ctx, serviceResourceName)
 
@@ -325,13 +324,13 @@ func TestDeleteResourceState(t *testing.T) {
 
 		mockKV.
 			EXPECT().
-			Delete(ctx, connectorResourceName).
+			Delete(ctx, connectorName).
 			Return(resp, nil).
 			Times(1)
 
-		s := service.NewService(nil, nil, nil, nil, nil, mockEtcdClient)
+		s := service.NewService(nil, nil, nil, mockEtcdClient)
 
-		err := s.DeleteResourceState(ctx, connectorResourceName)
+		err := s.DeleteResourceState(ctx, connectorName)
 
 		assert.NoError(t, err)
 	})
@@ -362,7 +361,7 @@ func TestDeleteResourceState(t *testing.T) {
 			Return(resp, nil).
 			Times(1)
 
-		s := service.NewService(nil, nil, nil, nil, nil, mockEtcdClient)
+		s := service.NewService(nil, nil, nil, mockEtcdClient)
 
 		err := s.DeleteResourceState(ctx, pipelineResourceName)
 

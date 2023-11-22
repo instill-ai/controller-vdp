@@ -27,7 +27,7 @@ if (__ENV.API_GATEWAY_PROTOCOL) {
 export const controllerGRPCPrivateHost = `controller-vdp:3085`;
 
 
-export const connectorResourcePermalink = `resources/${uuidv4()}/types/connectors`
+export const connectorPermalink = `resources/${uuidv4()}/types/connectors`
 
 export const pipelineResourcePermalink = `resources/${uuidv4()}/types/pipelines`
 

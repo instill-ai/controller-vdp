@@ -9,7 +9,6 @@ import (
 	"github.com/instill-ai/controller-vdp/internal/util"
 	"github.com/instill-ai/controller-vdp/pkg/logger"
 
-	connectorPB "github.com/instill-ai/protogen-go/vdp/connector/v1alpha"
 	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1alpha"
 	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1alpha"
 )
@@ -22,20 +21,20 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 	var wg sync.WaitGroup
 
 	resp, err := s.pipelinePrivateClient.ListPipelineReleasesAdmin(ctx, &pipelinePB.ListPipelineReleasesAdminRequest{
-		View: pipelinePB.View_VIEW_RECIPE.Enum(),
+		View: pipelinePB.ListPipelineReleasesAdminRequest_VIEW_RECIPE.Enum(),
 	})
 
 	if err != nil {
 		return err
 	}
 
-	connectorResources, err := s.getConnectorResources(ctx)
+	connectors, err := s.getConnectors(ctx)
 	if err != nil {
 		return err
 	}
 	connectorNameUidMap := map[string]string{}
-	for _, connectorResource := range connectorResources {
-		connectorNameUidMap[connectorResource.Name] = connectorResource.Uid
+	for _, connector := range connectors {
+		connectorNameUidMap[connector.Name] = connector.Uid
 	}
 
 	releases := resp.Releases
@@ -45,7 +44,7 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 	for totalSize > util.DefaultPageSize {
 		resp, err := s.pipelinePrivateClient.ListPipelineReleasesAdmin(ctx, &pipelinePB.ListPipelineReleasesAdminRequest{
 			PageToken: nextPageToken,
-			View:      pipelinePB.View_VIEW_FULL.Enum(),
+			View:      pipelinePB.ListPipelineReleasesAdminRequest_VIEW_FULL.Enum(),
 		})
 
 		if err != nil {
@@ -85,7 +84,7 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 				if strings.HasPrefix(component.DefinitionName, "connector-definitions/") {
 					if len(component.ResourceName) > 0 {
 						if uid, ok := connectorNameUidMap[component.ResourceName]; ok {
-							connectorResource, err := s.GetResourceState(ctx, util.ConvertUIDToResourcePermalink(uid, "connectors"))
+							connector, err := s.GetResourceState(ctx, util.ConvertUIDToResourcePermalink(uid, "connectors"))
 							if err != nil {
 								resErr := s.UpdateResourceState(ctx, &releaseResource)
 								if resErr != nil {
@@ -94,12 +93,12 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 								logger.Error(fmt.Sprintf("no record found for %s in etcd", component.ResourceName))
 								return
 							}
-							resources = append(resources, connectorResource)
+							resources = append(resources, connector)
 						} else {
 							resources = append(resources, &controllerPB.Resource{
 								ResourcePermalink: "",
 								State: &controllerPB.Resource_ConnectorState{
-									ConnectorState: connectorPB.ConnectorResource_STATE_ERROR,
+									ConnectorState: pipelinePB.Connector_STATE_ERROR,
 								},
 								Progress: nil,
 							})
@@ -109,7 +108,7 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 						resources = append(resources, &controllerPB.Resource{
 							ResourcePermalink: "",
 							State: &controllerPB.Resource_ConnectorState{
-								ConnectorState: connectorPB.ConnectorResource_STATE_ERROR,
+								ConnectorState: pipelinePB.Connector_STATE_ERROR,
 							},
 							Progress: nil,
 						})
@@ -122,15 +121,15 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 				switch v := r.State.(type) {
 				case *controllerPB.Resource_ConnectorState:
 					switch v.ConnectorState {
-					case connectorPB.ConnectorResource_STATE_DISCONNECTED:
+					case pipelinePB.Connector_STATE_DISCONNECTED:
 						releaseResource.State = &controllerPB.Resource_PipelineState{
 							PipelineState: pipelinePB.State_STATE_INACTIVE,
 						}
-					case connectorPB.ConnectorResource_STATE_UNSPECIFIED:
+					case pipelinePB.Connector_STATE_UNSPECIFIED:
 						releaseResource.State = &controllerPB.Resource_PipelineState{
 							PipelineState: pipelinePB.State_STATE_UNSPECIFIED,
 						}
-					case connectorPB.ConnectorResource_STATE_ERROR:
+					case pipelinePB.Connector_STATE_ERROR:
 						releaseResource.State = &controllerPB.Resource_PipelineState{
 							PipelineState: pipelinePB.State_STATE_ERROR,
 						}
