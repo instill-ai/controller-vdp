@@ -13,10 +13,10 @@ import (
 	"github.com/instill-ai/controller-vdp/internal/util"
 	"github.com/instill-ai/controller-vdp/pkg/logger"
 
-	healthcheckPB "github.com/instill-ai/protogen-go/common/healthcheck/v1alpha"
-	mgmtPB "github.com/instill-ai/protogen-go/core/mgmt/v1alpha"
-	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1alpha"
-	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1alpha"
+	healthcheckPB "github.com/instill-ai/protogen-go/common/healthcheck/v1beta"
+	mgmtPB "github.com/instill-ai/protogen-go/core/mgmt/v1beta"
+	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1beta"
+	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1beta"
 )
 
 // Service is the interface for the controller service

@@ -37,7 +37,7 @@ import (
 	"github.com/instill-ai/controller-vdp/pkg/service"
 
 	custom_otel "github.com/instill-ai/controller-vdp/pkg/logger/otel"
-	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1alpha"
+	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1beta"
 )
 
 var propagator propagation.TextMapPropagator
@@ -112,7 +112,7 @@ func main() {
 		grpc_zap.WithDecider(func(fullMethodName string, err error) bool {
 			// will not log gRPC calls if it was a call to liveness or readiness and no error was raised
 			if err == nil {
-				if match, _ := regexp.MatchString("vdp.controller.v1alpha.ControllerPrivateService/.*", fullMethodName); match {
+				if match, _ := regexp.MatchString("vdp.controller.v1beta.ControllerPrivateService/.*", fullMethodName); match {
 					return false
 				}
 			}

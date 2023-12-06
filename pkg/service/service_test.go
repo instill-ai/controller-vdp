@@ -8,9 +8,9 @@ import (
 	"github.com/instill-ai/controller-vdp/pkg/service"
 	"github.com/stretchr/testify/assert"
 
-	healthcheckPB "github.com/instill-ai/protogen-go/common/healthcheck/v1alpha"
-	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1alpha"
-	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1alpha"
+	healthcheckPB "github.com/instill-ai/protogen-go/common/healthcheck/v1beta"
+	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1beta"
+	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1beta"
 	etcdv3 "go.etcd.io/etcd/client/v3"
 )
 

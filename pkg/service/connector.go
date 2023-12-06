@@ -7,8 +7,8 @@ import (
 	"github.com/instill-ai/controller-vdp/internal/util"
 	"github.com/instill-ai/controller-vdp/pkg/logger"
 
-	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1alpha"
-	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1alpha"
+	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1beta"
+	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1beta"
 )
 
 func (s *service) getConnectors(ctx context.Context) ([]*pipelinePB.Connector, error) {

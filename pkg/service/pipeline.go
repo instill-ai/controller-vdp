@@ -9,8 +9,8 @@ import (
 	"github.com/instill-ai/controller-vdp/internal/util"
 	"github.com/instill-ai/controller-vdp/pkg/logger"
 
-	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1alpha"
-	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1alpha"
+	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1beta"
+	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1beta"
 )
 
 func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc) error {
@@ -21,7 +21,7 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 	var wg sync.WaitGroup
 
 	resp, err := s.pipelinePrivateClient.ListPipelineReleasesAdmin(ctx, &pipelinePB.ListPipelineReleasesAdminRequest{
-		View: pipelinePB.ListPipelineReleasesAdminRequest_VIEW_RECIPE.Enum(),
+		View: pipelinePB.Pipeline_VIEW_RECIPE.Enum(),
 	})
 
 	if err != nil {
@@ -44,7 +44,7 @@ func (s *service) ProbePipelines(ctx context.Context, cancel context.CancelFunc)
 	for totalSize > util.DefaultPageSize {
 		resp, err := s.pipelinePrivateClient.ListPipelineReleasesAdmin(ctx, &pipelinePB.ListPipelineReleasesAdminRequest{
 			PageToken: nextPageToken,
-			View:      pipelinePB.ListPipelineReleasesAdminRequest_VIEW_FULL.Enum(),
+			View:      pipelinePB.Pipeline_VIEW_RECIPE.Enum(),
 		})
 
 		if err != nil {
