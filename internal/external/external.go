@@ -12,8 +12,8 @@ import (
 	"github.com/instill-ai/controller-vdp/config"
 	"github.com/instill-ai/controller-vdp/pkg/logger"
 
-	mgmtPB "github.com/instill-ai/protogen-go/core/mgmt/v1alpha"
-	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1alpha"
+	mgmtPB "github.com/instill-ai/protogen-go/core/mgmt/v1beta"
+	pipelinePB "github.com/instill-ai/protogen-go/vdp/pipeline/v1beta"
 	etcdv3 "go.etcd.io/etcd/client/v3"
 )
 

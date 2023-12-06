@@ -7,7 +7,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0
-	github.com/instill-ai/protogen-go v0.3.3-alpha.0.20231121163720-206d6eff20a7
+	github.com/instill-ai/protogen-go v0.3.3-alpha.0.20231205045546-99b6fc00f67e
 	github.com/knadh/koanf v1.5.0
 	github.com/redis/go-redis/v9 v9.2.0
 	github.com/stretchr/testify v1.8.3

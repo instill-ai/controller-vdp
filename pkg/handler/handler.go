@@ -10,8 +10,8 @@ import (
 	"github.com/instill-ai/controller-vdp/pkg/service"
 
 	custom_otel "github.com/instill-ai/controller-vdp/pkg/logger/otel"
-	healthcheckPB "github.com/instill-ai/protogen-go/common/healthcheck/v1alpha"
-	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1alpha"
+	healthcheckPB "github.com/instill-ai/protogen-go/common/healthcheck/v1beta"
+	controllerPB "github.com/instill-ai/protogen-go/vdp/controller/v1beta"
 )
 
 type PrivateHandler struct {

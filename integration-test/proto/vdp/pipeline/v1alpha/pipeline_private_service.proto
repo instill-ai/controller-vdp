@@ -5,10 +5,10 @@ package vdp.pipeline.v1alpha;
 // Google API
 import "google/api/annotations.proto";
 import "google/api/client.proto";
-import "../../../vdp/pipeline/v1alpha/connector.proto";
-import "../../../vdp/pipeline/v1alpha/connector_definition.proto";
-import "../../../vdp/pipeline/v1alpha/operator_definition.proto";
-import "../../../vdp/pipeline/v1alpha/pipeline.proto";
+import "../../../vdp/pipeline/v1beta/connector.proto";
+import "../../../vdp/pipeline/v1beta/connector_definition.proto";
+import "../../../vdp/pipeline/v1beta/operator_definition.proto";
+import "../../../vdp/pipeline/v1beta/pipeline.proto";
 
 // Pipeline service responds to internal access
 service PipelinePrivateService {
